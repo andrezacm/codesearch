@@ -57,7 +57,7 @@ headers = { 'Accept' => 'application/vnd.github.preview.text-match+json', 'User-
 puts "URL: #{url}"
 response = HTTParty.get(url, :headers => headers)
 
-csv_file = "[#{params[:q]}][#{Time.now}].csv"
+csv_file = "#{Time.now.strftime("[%Y-%m-%d %H:%M:%S]")}[#{params[:q]}].csv"
 helper = Helper.new csv_file
 
 helper.save_users(response, token) 
