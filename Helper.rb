@@ -43,7 +43,7 @@ class Helper
   def save_user_csv_header
     begin
       CSV.open(@csv_file, "ab") do |writer|
-        writer << ['login', 
+        writer << ['username', 
                    'email', 
                    'name',
                    'location', 
