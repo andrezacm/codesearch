@@ -35,9 +35,9 @@ class Helper
       username = item['repository']['owner']['login']
       reponame = item['repository']['name']
 
-      puts "Visiting user/repository" + username + "/" + reponame
+      puts "Visiting " + username + "/" + reponame
 
-      if !@repos.has_key(username + '/' + reponame) then
+      if !@repos.has_key?(username + '/' + reponame) then
         save_user(username, token)
         save_collaborators(username, reponame, token)
         save_contributors(username, reponame, token)
@@ -45,6 +45,7 @@ class Helper
       else
         puts "Repository already visited, skipping."
       end
+    end
   end
 
   def save_user_csv_header
@@ -102,7 +103,7 @@ class Helper
         puts "User #{login} has a null email address. Adding to hash only and skipping csv."
       end
     else
-      puts "User #{login} already in database"
+      puts "User #{login} already in database."
     end
   end
 
