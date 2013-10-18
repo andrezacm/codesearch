@@ -3,7 +3,7 @@ require 'httparty'
 require 'launchy'
 require 'socket'
 require 'awesome_print'
-require_relative 'aux'
+require_relative 'Helper'
 
 params = {}
 params[:q]     = ARGV[0]
@@ -57,22 +57,21 @@ headers = { 'Accept' => 'application/vnd.github.preview.text-match+json', 'User-
 puts "URL: #{url}"
 response = HTTParty.get(url, :headers => headers)
 
-users = Hash.new
-process_users(response, users, token) 
+csv_file = "[#{params[:q]}][#{Time.now}].csv"
+helper = Helper.new csv_file
+
+helper.save_users(response, token) 
 
 #Pagination
 unless response.headers['link'].nil?
-	links = pagination(response.headers)
+	links = helper.pagination(response.headers)
 
 	while !links['next'].nil? do
 		response = HTTParty.get(links['next'], :headers => headers)
-		links = pagination(response.headers)
-		verify_rate_limit(response.headers)
-		process_users(response, users, token)
+		links = helper.pagination(response.headers)
+		helper.verify_rate_limit(response.headers)
+		helper.save_users(response, token)
 	end
 end
 
-# save users in csv
-file = "[#{params[:q]}][#{Time.now}].csv"
-save_users_csv(file, users)
 
