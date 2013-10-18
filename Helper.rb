@@ -6,6 +6,7 @@ class Helper
   def initialize(data_source) 
     @csv_file = data_source
     @users = Hash.new
+    @repos = Hash.new
     save_user_csv_header
   end
 
@@ -33,10 +34,17 @@ class Helper
     response['items'].each do |item|
       username = item['repository']['owner']['login']
       reponame = item['repository']['name']
-      
-      save_user(username, token)
-      save_collaborators(username, reponame, token)
-      save_contributors(username, reponame, token)
+
+      puts "Visiting " + username + "/" + reponame
+
+      if !@repos.has_key?(username + '/' + reponame) then
+        save_user(username, token)
+        save_collaborators(username, reponame, token)
+        save_contributors(username, reponame, token)
+        @repos[username + '/' + reponame] = true
+      else
+        puts "Repository already visited, skipping."
+      end
     end
   end
 
@@ -94,7 +102,7 @@ class Helper
         puts "User #{login} has a null email address. Adding to hash only and skipping csv."
       end
     else
-      puts "User #{login} already in database"
+      puts "User #{login} already in database."
     end
   end
 
