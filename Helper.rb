@@ -90,9 +90,9 @@ class Helper
       # save to csv if email is not nil
       if !email.nil? then
         save_user_csv(user)
-        puts "#{login} saved."
+        puts "User #{login} saved."
       else
-        puts "#{login} has a null email address. Adding to hash only and skipping csv."
+        puts "User #{login} has a null email address. Adding to hash only and skipping csv."
       end
     else
       puts "User #{login} already in database"
