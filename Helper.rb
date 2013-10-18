@@ -73,9 +73,10 @@ class Helper
     if !@users.has_key?(login) then 
       url = 'https://api.github.com/users/' + login
       response = get_response(url, token)
+      email = response['email']
       ap response
       user = {'login' => login,
-              'email' => response['email'],
+              'email' => email,
               'name' => response['name'],
               'location' => response['location'],
               'blog' => response['blog'],
@@ -86,9 +87,13 @@ class Helper
               'created_at' => response['created_at']}
       # add to a hash
       @users[login] = user
-      # save to csv
-      save_user_csv(user)
-      puts "#{login} saved."
+      # save to csv if email is not nil
+      if !email.nil? then
+        save_user_csv(user)
+        puts "#{login} saved."
+      else
+        puts "#{login} has a null email address. Adding to hash only and skipping csv."
+      end
     else
       puts "User #{login} already in database"
     end
