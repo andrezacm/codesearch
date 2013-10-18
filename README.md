@@ -5,11 +5,11 @@ Uses GitHub's Code Search API to search for a query string over all public repos
 
 ###Usage
 
-`$ ruby script.rb [query_string]`
+`$ ruby codesearch.rb [query_string]`
 
 e.g.
 
-`$ ruby script.rb AndroidManifest.xml`
+`$ ruby codesearch.rb AndroidManifest.xml`
 
 ### Change log
 
