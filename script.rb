@@ -6,12 +6,10 @@ require 'awesome_print'
 require_relative 'aux'
 
 params = {}
-params[:type]  = ARGV[0]
-params[:q]     = ARGV[1]
+params[:q]     = ARGV[0]
 
-if params[:type].nil? || params[:q].nil? || !%w[repositories code issues users].include?(params[:type])
-  puts "Usage: $ ruby script.rb [repositories|code|issues|users] [query_string] [stars|forks|updated] [asc|desc]"
-  puts "Try: ruby script.rb help"
+if params[:q].nil? 
+  puts "Usage: $ ruby script.rb [query_string]"
   exit
 end
 
@@ -50,7 +48,7 @@ end
 
 params[:q] = params[:q].gsub(/\s/, '+')
 
-url = "https://api.github.com/search/#{params[:type]}?q=#{params[:q]}"
+url = "https://api.github.com/search/code?q=#{params[:q]}"
 url += "&" + token
 url += "&per_page=100"
 
@@ -59,11 +57,8 @@ headers = { 'Accept' => 'application/vnd.github.preview.text-match+json', 'User-
 puts "URL: #{url}"
 response = HTTParty.get(url, :headers => headers)
 
-file = "results-codesearch-[type-#{params[:type]}]-[#{params[:q]}][#{Time.now}].csv"
-
-send("save_csv_head_#{params[:type]}".to_sym, file)
-
-process_data(params[:type], response, token, params, file) 
+users = Hash.new
+process_users(response, users, token) 
 
 #Pagination
 unless response.headers['link'].nil?
@@ -73,6 +68,11 @@ unless response.headers['link'].nil?
 		response = HTTParty.get(links['next'], :headers => headers)
 		links = pagination(response.headers)
 		verify_rate_limit(response.headers)
-		process_data(params[:type], response, token, params, file)
+		process_users(response, users, token)
 	end
 end
+
+# save users in csv
+file = "[#{params[:q]}][#{Time.now}].csv"
+save_users_csv(file, users)
+

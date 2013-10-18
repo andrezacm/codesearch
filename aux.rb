@@ -21,98 +21,62 @@ def verify_rate_limit header
 	end
 end
 
-def process_data type, response, token, params, file
-  send("process_data_#{type}".to_sym, response, token, params, file)
-end
-
-def process_data_repositories response, token, params, file
-	data = []
-
+def process_users response, users, token
 	response['items'].each do |item|
-
-		data_aux = { 	
-      'name' 						=> item['name'],
-			'owner'						=> get_user(item['repository']['owner']['login'], token),
-			'created_at'			=> item['created_at'],
-			'pushed_at' 			=> item['pushed_at'],
-			'watchers_count'	=> item['watchers_count'],
-			'forks_count' 		=> item['forks_count'],
-			'collaborators'		=> get_collaborators(item['repository']['owner']['login'], item['repository']['name'], token),
-			'contributors'		=> get_contributors(item['owner']['login'], item['name'], token)
-    }
-
-		ap data_aux
-		save_in_csv(file, data_aux)
-		data << data_aux
-	end
+    username = item['repository']['owner']['login']
+    reponame = item['repository']['name']
+    
+    get_user(username, users, token)
+    get_collaborators(username, reponame, users, token)
+    get_contributors(username, reponame, users, token)
+  end
 end
 
-def process_data_code response, token, params, file
-	data = []
-
-	response['items'].each do |item|
-		data_repos = get_repos(item['repository']['owner']['login'], item['repository']['name'], token)
-
-		data_aux = {	'name' 							=> item['repository']['name'],
-									'owner'							=> get_user(item['repository']['owner']['login'], token),
-									'created_at'				=> data_repos['created_at'],
-									'pushed_at' 				=> data_repos['pushed_at'],
-									'updated_at'				=> data_repos['updated_at'],
-									'fork'							=> data_repos['fork'], 
-									'language'					=> data_repos['language'], 
-									'watchers_count'		=> data_repos['watchers_count'],
-									'forks_count' 			=> data_repos['forks_count'],
-									'open_issues_count'	=> data_repos['open_issues_count'],
-									'collaborators'			=> get_collaborators(item['repository']['owner']['login'], item['repository']['name'], token),
-									'contributors'			=> get_contributors(item['repository']['owner']['login'], item['repository']['name'], token)}
-		
-		ap data_aux
-		save_in_csv(file, data_aux)
-		data << data_aux	
-	end
+def save_users_csv(file, users)
+  begin
+    CSV.open(file , "w") do |writer|
+      users.each do |login, values|
+        writer << [login, values['email'], values['location']] 
+      end
+    end
+  rescue Exception => e
+      puts e.inspect
+  end
 end
 
-def get_repos login, repos, token
-	url = 'https://api.github.com/repos/' + login + '/' + repos
-	return get_response(url, token)
+def get_user login, users, token
+  if !users.has_key?(login) then 
+	  url = 'https://api.github.com/users/' + login
+    response = get_response(url, token)
+    ap response
+	  users[login] = {'email' => response['email'], 'location' => response['location']}
+  end
 end
 
-def get_user login, token
-	url = 'https://api.github.com/users/' + login
-	response = get_response(url, token)
-	return {'name' => response['name'], 'login'=> response['login'], 'email' => response['email'], 'location' => response['location']}
-end
-
-def get_contributors owner, repos, token
+def get_contributors owner, repos, users, token
 	url = 'https://api.github.com/repos/' + owner + '/' + repos + '/contributors'
 	response = get_response(url, token)
-	contributors = []
 
 	response.each do |item|
     begin
-      contributors << get_user(item['login'], token)
+      get_user(item['login'], users, token)
     rescue Exception => e
       puts e.inspect
     end
 	end
-
-	return contributors
 end
 
-def get_collaborators owner, repos, token
+def get_collaborators owner, repos, users, token
 	url = 'https://api.github.com/repos/' + owner + '/' + repos + '/collaborators'
 	response = get_response(url, token)
-	collaborators = []
-
-	response.each do |item|
+	
+  response.each do |item|
     begin
-      collaborators << get_user(item['login'], token)
+      get_user(item['login'], users, token)
     rescue Exception => e
       puts e.inspect
     end
 	end
-
-	return collaborators
 end
 
 def get_response url, token
@@ -129,24 +93,4 @@ def get_response url, token
 	return response
 end
 
-def save_csv_head_code file
-	head = 'name,owner,string_seargh,created_at,pushed_at,updated_at,fork,language,watchers_count,forks_count,open_issues_count,collaborators,contributors'
-	head_for_save = {}
-	
-	head.split(',').inject(Hash.new{|aa,b| aa[b] = b}) do |aa,b|
-		aa[b] = b
-		head_for_save = aa
-	end
 
-	save_in_csv(file, head_for_save)
-end
-
-def save_in_csv file, result
-	begin
-		CSV.open(file , "ab") do |csv|
-    	csv << result.values
-		end
-	rescue Exception => e
-		puts e.inspect
-	end
-end
