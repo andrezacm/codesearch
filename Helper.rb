@@ -43,7 +43,7 @@ class Helper
   def save_user_csv_header
     begin
       CSV.open(@csv_file, "ab") do |writer|
-        writer << ['login', 
+        writer << ['username', 
                    'email', 
                    'name',
                    'location', 
@@ -86,9 +86,13 @@ class Helper
               'created_at' => response['created_at']}
       # add to a hash
       @users[login] = user
-      # save to csv
-      save_user_csv(user)
-      puts "User #{login} saved."
+      # save to csv if email is not nil
+      if !email.nil? then
+        save_user_csv(user)
+        puts "User #{login} saved."
+      else
+        puts "User #{login} has a null email address. Adding to hash only and skipping csv."
+      end
     else
       puts "User #{login} already in database"
     end

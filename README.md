@@ -1,7 +1,7 @@
 codesearch
 ==========
 
-Use GitHub Code Search API to search for a query string. Saves user information associated with each repository returned on the code search results list. 
+Uses GitHub's Code Search API to search for a query string over all public repositories. Saves user information associated with each repository returned in the results list. 
 
 ###Usage
 
