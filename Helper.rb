@@ -88,7 +88,7 @@ class Helper
       @users[login] = user
       # save to csv
       save_user_csv(user)
-      puts "#{login} saved."
+      puts "User #{login} saved."
     else
       puts "User #{login} already in database"
     end
