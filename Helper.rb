@@ -31,20 +31,25 @@ class Helper
   end
 
   def save_users response, token
-    response['items'].each do |item|
-      username = item['repository']['owner']['login']
-      reponame = item['repository']['name']
+    if !response.nil? and response.has_key?('items') then
+      response['items'].each do |item|
+        username = item['repository']['owner']['login']
+        reponame = item['repository']['name']
 
-      puts "Visiting " + username + "/" + reponame
+        puts "Visiting " + username + "/" + reponame
 
-      if !@repos.has_key?(username + '/' + reponame) then
-        save_user(username, token)
-        save_collaborators(username, reponame, token)
-        save_contributors(username, reponame, token)
-        @repos[username + '/' + reponame] = true
-      else
-        puts "Repository already visited, skipping."
+        if !@repos.has_key?(username + '/' + reponame) then
+          save_user(username, token)
+          save_collaborators(username, reponame, token)
+          save_contributors(username, reponame, token)
+          @repos[username + '/' + reponame] = true
+        else
+          puts "Repository already visited, skipping."
+        end
       end
+    else
+      puts "An error occurred. Printing response."
+      ap response
     end
   end
 
@@ -96,11 +101,11 @@ class Helper
       # add to a hash
       @users[login] = user
       # save to csv if email is not nil
-      if !email.nil? then
+      if !email.nil? && !email.empty? then
         save_user_csv(user)
         puts "User #{login} saved."
       else
-        puts "User #{login} has a null email address. Adding to hash only and skipping csv."
+        puts "User #{login} has a null or blank email address. Adding to hash and skipping csv."
       end
     else
       puts "User #{login} already in database."
